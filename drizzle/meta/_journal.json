@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1733782144309,
+      "tag": "0000_broad_wonder_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1733783615732,
+      "tag": "0001_vengeful_mephistopheles",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1733785437059,
+      "tag": "0002_solid_marvel_apes",
+      "breakpoints": true
+    }
+  ]
+}
