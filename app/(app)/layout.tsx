@@ -18,6 +18,8 @@ interface SidebarItem {
   icon: React.ReactNode;
 }
 
+export const dynamic = "force-dynamic";
+
 const sidebarItems: SidebarItem[] = [
   {
     title: "Dashboard",
