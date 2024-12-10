@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { EditBudgetDialog } from "./edit-budget-dialog";
-import { deleteBudget } from "@/app/dashboard/actions";
+import { deleteBudget } from "@/app/(app)/dashboard/actions";
 import {
   AlertDialog,
   AlertDialogAction,

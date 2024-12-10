@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { AddInvestmentDialog } from "./add-investment-dialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { updateInvestmentPricing } from "@/app/dashboard/actions";
+import { updateInvestmentPricing } from "@/app/(app)/dashboard/actions";
 
 interface InvestmentListProps {
   investments: Investment[];

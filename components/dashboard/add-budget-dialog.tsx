@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { createBudget } from "@/app/dashboard/actions";
+import { createBudget } from "@/app/(app)/dashboard/actions";
 import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";

@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { createInvestment } from "@/app/dashboard/actions";
+import { createInvestment } from "@/app/(app)/dashboard/actions";
 import { Plus } from "lucide-react";
 
 const formSchema = z.object({

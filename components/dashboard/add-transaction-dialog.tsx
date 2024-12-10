@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { createTransaction } from "@/app/dashboard/actions";
+import { createTransaction } from "@/app/(app)/dashboard/actions";
 import type { Category } from "@/db/schema";
 import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";

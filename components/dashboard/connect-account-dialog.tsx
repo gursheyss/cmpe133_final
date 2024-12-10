@@ -32,7 +32,7 @@ import { Plus, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { connectExternalAccount } from "@/app/dashboard/actions";
+import { connectExternalAccount } from "@/app/(app)/dashboard/actions";
 
 const formSchema = z.object({
   type: z.enum(["credit", "bank", "investment"]),

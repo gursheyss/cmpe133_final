@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Overview } from "@/components/dashboard/overview";
 import { TransactionList } from "@/components/transaction-list";
 import { AddTransactionDialog } from "@/components/dashboard/add-transaction-dialog";
-import { getTransactionData } from "../dashboard/actions";
 import type { Transaction } from "@/db/schema";
+import { getTransactionData } from "../dashboard/actions";
 
 export default async function TransactionsPage() {
   const session = await auth();

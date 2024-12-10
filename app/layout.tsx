@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { AuthProvider } from "./providers";
 import "./global.css";
+import { cn } from "@/lib/utils";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "FinanceGuard",
-  description: "Secure financial management platform",
+  description: "Personal finance management made simple",
 };
 
 export default function RootLayout({
@@ -15,10 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
-      </body>
+    <html lang="en" className="h-full">
+      <body className={cn(inter.className, "h-full")}>{children}</body>
     </html>
   );
 }
