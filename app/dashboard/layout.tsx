@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   LineChart,
+  Wallet,
   PiggyBank,
   Settings,
   LogOut,
+  Receipt,
 } from "lucide-react";
+import Link from "next/link";
 
 interface SidebarItem {
   title: string;
@@ -22,18 +25,28 @@ const sidebarItems: SidebarItem[] = [
     icon: <LayoutDashboard className="w-6 h-6" />,
   },
   {
-    title: "Investments",
-    href: "/dashboard/investments",
-    icon: <LineChart className="w-6 h-6" />,
+    title: "Transactions",
+    href: "/transactions",
+    icon: <Receipt className="w-6 h-6" />,
   },
   {
-    title: "Savings Goals",
-    href: "/dashboard/goals",
+    title: "Budgets",
+    href: "/budgets",
     icon: <PiggyBank className="w-6 h-6" />,
   },
   {
+    title: "Investments",
+    href: "/investments",
+    icon: <LineChart className="w-6 h-6" />,
+  },
+  {
+    title: "Accounts",
+    href: "/accounts",
+    icon: <Wallet className="w-6 h-6" />,
+  },
+  {
     title: "Settings",
-    href: "/dashboard/settings",
+    href: "/settings",
     icon: <Settings className="w-6 h-6" />,
   },
 ];
@@ -65,19 +78,31 @@ export default async function DashboardLayout({
               className="w-full justify-start gap-2 px-2"
               asChild
             >
-              <a href={item.href}>
+              <Link href={item.href}>
                 {item.icon}
                 {item.title}
-              </a>
+              </Link>
             </Button>
           ))}
         </nav>
 
         <div className="p-4 border-t">
-          <Button variant="ghost" className="w-full justify-start gap-2">
-            <LogOut className="w-5 h-5" />
-            Sign Out
-          </Button>
+          <form
+            action={async () => {
+              "use server";
+              const { signOut } = await import("@/lib/auth");
+              await signOut();
+            }}
+          >
+            <Button
+              type="submit"
+              variant="ghost"
+              className="w-full justify-start gap-2"
+            >
+              <LogOut className="w-5 h-5" />
+              Sign Out
+            </Button>
+          </form>
         </div>
       </aside>
 

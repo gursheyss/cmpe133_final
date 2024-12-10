@@ -176,6 +176,64 @@ export const budgets = sqliteTable(
   })
 );
 
+export const investments = sqliteTable(
+  "investments",
+  {
+    id: text("id")
+      .primaryKey()
+      .default(
+        sql`(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))))`
+      ),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    symbol: text("symbol").notNull(),
+    name: text("name").notNull(),
+    type: text("type", {
+      enum: ["stock", "etf", "crypto", "bond", "mutual_fund"],
+    }).notNull(),
+    shares: text("shares").notNull(),
+    averageCost: text("average_cost").notNull(),
+    currentPrice: text("current_price").notNull(),
+    lastUpdated: integer("last_updated", { mode: "timestamp" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("investments_userId_idx").on(table.userId),
+    symbolIdx: index("investments_symbol_idx").on(table.symbol),
+  })
+);
+
+export const dividends = sqliteTable(
+  "dividends",
+  {
+    id: text("id")
+      .primaryKey()
+      .default(
+        sql`(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))))`
+      ),
+    investmentId: text("investment_id")
+      .notNull()
+      .references(() => investments.id, { onDelete: "cascade" }),
+    amount: text("amount").notNull(),
+    paymentDate: integer("payment_date", { mode: "timestamp" }).notNull(),
+    reinvested: integer("reinvested", { mode: "boolean" })
+      .default(sql`false`)
+      .notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => ({
+    investmentIdIdx: index("dividends_investmentId_idx").on(table.investmentId),
+    paymentDateIdx: index("dividends_paymentDate_idx").on(table.paymentDate),
+  })
+);
+
 export type Transaction = typeof transactions.$inferSelect;
 export type NewTransaction = typeof transactions.$inferInsert;
 export type Category = typeof categories.$inferSelect;
@@ -183,6 +241,10 @@ export type ExternalAccount = typeof externalAccounts.$inferSelect;
 export type NewExternalAccount = typeof externalAccounts.$inferInsert;
 export type Budget = typeof budgets.$inferSelect;
 export type NewBudget = typeof budgets.$inferInsert;
+export type Investment = typeof investments.$inferSelect;
+export type NewInvestment = typeof investments.$inferInsert;
+export type Dividend = typeof dividends.$inferSelect;
+export type NewDividend = typeof dividends.$inferInsert;
 
 export const accountProviders = {
   credit: [

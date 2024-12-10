@@ -11,6 +11,10 @@ import {
   budgets,
   type NewBudget,
   type Budget,
+  investments,
+  type NewInvestment,
+  dividends,
+  type NewDividend,
 } from "./schema";
 import * as schema from "./schema";
 
@@ -311,4 +315,122 @@ export async function updateBudget(
   }
 
   return updatedBudget;
+}
+
+export async function getUserInvestments(userId: string) {
+  return await db
+    .select()
+    .from(investments)
+    .where(eq(investments.userId, userId))
+    .orderBy(desc(investments.createdAt));
+}
+
+export async function addInvestment(
+  userId: string,
+  data: {
+    symbol: string;
+    name: string;
+    type: "stock" | "etf" | "crypto" | "bond" | "mutual_fund";
+    shares: number;
+    averageCost: number;
+    currentPrice: number;
+  }
+) {
+  const newInvestment: NewInvestment = {
+    userId,
+    symbol: data.symbol.toUpperCase(),
+    name: data.name,
+    type: data.type,
+    shares: data.shares.toString(),
+    averageCost: data.averageCost.toString(),
+    currentPrice: data.currentPrice.toString(),
+  };
+
+  const [investment] = await db
+    .insert(investments)
+    .values(newInvestment)
+    .returning();
+  return investment;
+}
+
+export async function updateInvestmentPrice(
+  userId: string,
+  investmentId: string,
+  currentPrice: number
+) {
+  const [updatedInvestment] = await db
+    .update(investments)
+    .set({
+      currentPrice: currentPrice.toString(),
+      lastUpdated: new Date(),
+    })
+    .where(
+      and(eq(investments.id, investmentId), eq(investments.userId, userId))
+    )
+    .returning();
+
+  if (!updatedInvestment) {
+    throw new Error("Investment not found");
+  }
+
+  return updatedInvestment;
+}
+
+export async function getInvestmentDividends(investmentId: string) {
+  return await db
+    .select()
+    .from(dividends)
+    .where(eq(dividends.investmentId, investmentId))
+    .orderBy(desc(dividends.paymentDate));
+}
+
+export async function addDividend(
+  investmentId: string,
+  data: {
+    amount: number;
+    paymentDate: Date;
+    reinvested: boolean;
+  }
+) {
+  const newDividend: NewDividend = {
+    investmentId,
+    amount: data.amount.toString(),
+    paymentDate: data.paymentDate,
+    reinvested: data.reinvested,
+  };
+
+  const [dividend] = await db.insert(dividends).values(newDividend).returning();
+  return dividend;
+}
+
+export async function getInvestmentStats(userId: string) {
+  const userInvestments = await getUserInvestments(userId);
+
+  const totalValue = userInvestments.reduce(
+    (sum, inv) => sum + Number(inv.shares) * Number(inv.currentPrice),
+    0
+  );
+
+  const totalCost = userInvestments.reduce(
+    (sum, inv) => sum + Number(inv.shares) * Number(inv.averageCost),
+    0
+  );
+
+  const totalGainLoss = totalValue - totalCost;
+  const totalGainLossPercent = (totalGainLoss / totalCost) * 100;
+
+  const assetAllocation = userInvestments.reduce((acc, inv) => {
+    const value = Number(inv.shares) * Number(inv.currentPrice);
+    acc[inv.type] = (acc[inv.type] || 0) + value;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return {
+    totalValue,
+    totalCost,
+    totalGainLoss,
+    totalGainLossPercent,
+    assetAllocation,
+    investments: userInvestments,
+  };
 }

@@ -13,6 +13,10 @@ import {
   getBudgetSpending,
   deleteBudget as deleteBudgetFromDb,
   updateBudget as updateBudgetInDb,
+  getInvestmentStats,
+  addInvestment,
+  addDividend,
+  updateInvestmentPrice,
 } from "@/db";
 import { revalidatePath } from "next/cache";
 import { extendedCategories } from "@/db/schema";
@@ -308,5 +312,94 @@ export async function updateBudget(budgetId: string, formData: FormData) {
     endDate,
   });
 
+  revalidatePath("/dashboard");
+}
+
+export async function getInvestmentData() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  const stats = await getInvestmentStats(session.user.id);
+  return stats;
+}
+
+export async function createInvestment(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  const symbol = formData.get("symbol") as string;
+  const name = formData.get("name") as string;
+  const type = formData.get("type") as
+    | "stock"
+    | "etf"
+    | "crypto"
+    | "bond"
+    | "mutual_fund";
+  const shares = Number.parseFloat(formData.get("shares") as string);
+  const averageCost = Number.parseFloat(formData.get("averageCost") as string);
+  const currentPrice = Number.parseFloat(
+    formData.get("currentPrice") as string
+  );
+
+  if (!symbol || !name || !type || !shares || !averageCost || !currentPrice) {
+    throw new Error("Missing required fields");
+  }
+
+  await addInvestment(session.user.id, {
+    symbol,
+    name,
+    type,
+    shares,
+    averageCost,
+    currentPrice,
+  });
+
+  revalidatePath("/dashboard");
+}
+
+export async function addDividendPayment(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  const investmentId = formData.get("investmentId") as string;
+  const amount = Number.parseFloat(formData.get("amount") as string);
+  const paymentDate = new Date(formData.get("paymentDate") as string);
+  const reinvested = formData.get("reinvested") === "true";
+
+  if (!investmentId || !amount || !paymentDate) {
+    throw new Error("Missing required fields");
+  }
+
+  await addDividend(investmentId, {
+    amount,
+    paymentDate,
+    reinvested,
+  });
+
+  revalidatePath("/dashboard");
+}
+
+export async function updateInvestmentPricing(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  const investmentId = formData.get("investmentId") as string;
+  const currentPrice = Number.parseFloat(
+    formData.get("currentPrice") as string
+  );
+
+  if (!investmentId || !currentPrice) {
+    throw new Error("Missing required fields");
+  }
+
+  await updateInvestmentPrice(session.user.id, investmentId, currentPrice);
   revalidatePath("/dashboard");
 }
