@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
-  WalletCards,
   LineChart,
   PiggyBank,
   Settings,
@@ -21,11 +20,6 @@ const sidebarItems: SidebarItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: <LayoutDashboard className="w-6 h-6" />,
-  },
-  {
-    title: "Transactions",
-    href: "/dashboard/transactions",
-    icon: <WalletCards className="w-6 h-6" />,
   },
   {
     title: "Investments",
