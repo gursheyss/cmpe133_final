@@ -147,11 +147,42 @@ export const categories = sqliteTable(
   })
 );
 
+export const budgets = sqliteTable(
+  "budgets",
+  {
+    id: text("id")
+      .primaryKey()
+      .default(
+        sql`(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))))`
+      ),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    categoryId: text("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+    amount: text("amount").notNull(),
+    period: text("period", { enum: ["monthly", "annual"] }).notNull(),
+    startDate: integer("start_date", { mode: "timestamp" }).notNull(),
+    endDate: integer("end_date", { mode: "timestamp" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("budgets_userId_idx").on(table.userId),
+    categoryIdIdx: index("budgets_categoryId_idx").on(table.categoryId),
+    dateIdx: index("budgets_date_idx").on(table.startDate, table.endDate),
+  })
+);
+
 export type Transaction = typeof transactions.$inferSelect;
 export type NewTransaction = typeof transactions.$inferInsert;
 export type Category = typeof categories.$inferSelect;
 export type ExternalAccount = typeof externalAccounts.$inferSelect;
 export type NewExternalAccount = typeof externalAccounts.$inferInsert;
+export type Budget = typeof budgets.$inferSelect;
+export type NewBudget = typeof budgets.$inferInsert;
 
 export const accountProviders = {
   credit: [

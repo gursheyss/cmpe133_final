@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/libsql";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, gte, lte } from "drizzle-orm";
 import {
   transactions,
   categories,
@@ -8,6 +8,9 @@ import {
   type NewExternalAccount,
   extendedCategories,
   defaultCategories,
+  budgets,
+  type NewBudget,
+  type Budget,
 } from "./schema";
 import * as schema from "./schema";
 
@@ -199,4 +202,113 @@ export async function deleteTransaction(userId: string, transactionId: string) {
         eq(transactions.isExternal, false)
       )
     );
+}
+
+export async function getUserBudgets(userId: string) {
+  return await db
+    .select()
+    .from(budgets)
+    .where(eq(budgets.userId, userId))
+    .orderBy(desc(budgets.createdAt));
+}
+
+export async function addBudget(
+  userId: string,
+  data: {
+    categoryId: string;
+    amount: number;
+    period: "monthly" | "annual";
+    startDate: Date;
+    endDate: Date;
+  }
+) {
+  const newBudget: NewBudget = {
+    userId,
+    categoryId: data.categoryId,
+    amount: data.amount.toString(),
+    period: data.period,
+    startDate: data.startDate,
+    endDate: data.endDate,
+  };
+
+  const [budget] = await db.insert(budgets).values(newBudget).returning();
+  return budget;
+}
+
+export async function getBudgetSpending(userId: string, budget: Budget) {
+  const startDate = new Date(budget.startDate);
+  const endDate = new Date(budget.endDate);
+
+  const transactions = await db
+    .select()
+    .from(schema.transactions)
+    .where(
+      and(
+        eq(schema.transactions.userId, userId),
+        eq(schema.transactions.type, "expense"),
+        gte(schema.transactions.date, startDate),
+        lte(schema.transactions.date, endDate)
+      )
+    );
+
+  const categoryTransactions = transactions.filter(
+    (t) => t.category === budget.categoryId
+  );
+
+  const totalSpent = categoryTransactions.reduce(
+    (sum, t) => sum + Math.abs(Number(t.amount)),
+    0
+  );
+
+  return {
+    totalSpent,
+    transactions: categoryTransactions,
+    remainingBudget: Number(budget.amount) - totalSpent,
+    percentageUsed: (totalSpent / Number(budget.amount)) * 100,
+  };
+}
+
+export async function deleteBudget(userId: string, budgetId: string) {
+  const [deletedBudget] = await db
+    .delete(budgets)
+    .where(and(eq(budgets.id, budgetId), eq(budgets.userId, userId)))
+    .returning();
+
+  if (!deletedBudget) {
+    throw new Error("Budget not found");
+  }
+
+  return deletedBudget;
+}
+
+export async function updateBudget(
+  userId: string,
+  budgetId: string,
+  data: {
+    categoryId?: string;
+    amount?: number;
+    period?: "monthly" | "annual";
+    startDate?: Date;
+    endDate?: Date;
+  }
+) {
+  const updateData: Partial<NewBudget> = {
+    ...(data.categoryId && { categoryId: data.categoryId }),
+    ...(data.amount && { amount: data.amount.toString() }),
+    ...(data.period && { period: data.period }),
+    ...(data.startDate && { startDate: data.startDate }),
+    ...(data.endDate && { endDate: data.endDate }),
+  };
+
+  const [updatedBudget] = await db
+    .update(budgets)
+    .set(updateData)
+    .where(and(eq(budgets.id, budgetId), eq(budgets.userId, userId)))
+    .returning();
+
+  if (!updatedBudget) {
+    throw new Error("Budget not found");
+  }
+
+  return updatedBudget;
 }

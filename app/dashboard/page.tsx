@@ -6,6 +6,8 @@ import { TransactionList } from "@/components/transaction-list";
 import { AddTransactionDialog } from "@/components/dashboard/add-transaction-dialog";
 import { ConnectAccountDialog } from "@/components/dashboard/connect-account-dialog";
 import { ManageAccountsDialog } from "@/components/dashboard/manage-accounts-dialog";
+import { AddBudgetDialog } from "@/components/dashboard/add-budget-dialog";
+import { BudgetProgress } from "@/components/dashboard/budget-progress";
 import {
   DollarSign,
   CreditCard,
@@ -13,7 +15,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
-import { getTransactionData } from "./actions";
+import { getTransactionData, getBudgetData } from "./actions";
 import { initializeDefaultCategories } from "@/db";
 import type { Transaction } from "@/db/schema";
 
@@ -26,7 +28,8 @@ export default async function DashboardPage() {
 
   await initializeDefaultCategories();
 
-  const { transactions, categories, accounts } = await getTransactionData();
+  const [{ transactions, categories, accounts }, { budgets }] =
+    await Promise.all([getTransactionData(), getBudgetData()]);
 
   const totalBalance = transactions.reduce(
     (sum: number, t: Transaction) => sum + Number(t.amount),
@@ -72,6 +75,7 @@ export default async function DashboardPage() {
           <ConnectAccountDialog />
           <ManageAccountsDialog accounts={accounts} />
           <AddTransactionDialog categories={categories} />
+          <AddBudgetDialog categories={categories} />
         </div>
       </div>
 
@@ -146,7 +150,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>Financial Overview</CardTitle>
           </CardHeader>
-          <CardContent className="pl-2">
+          <CardContent>
             <Overview transactions={transactions} />
           </CardContent>
         </Card>
@@ -157,6 +161,17 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <TransactionList transactions={transactions.slice(0, 10)} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Budget Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BudgetProgress budgets={budgets} categories={categories} />
           </CardContent>
         </Card>
       </div>

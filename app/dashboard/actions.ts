@@ -8,6 +8,11 @@ import {
   addExternalAccount,
   addExternalTransactions,
   getUserExternalAccounts,
+  getUserBudgets,
+  addBudget,
+  getBudgetSpending,
+  deleteBudget as deleteBudgetFromDb,
+  updateBudget as updateBudgetInDb,
 } from "@/db";
 import { revalidatePath } from "next/cache";
 import { extendedCategories } from "@/db/schema";
@@ -208,6 +213,100 @@ export async function connectExternalAccount(data: {
 
   const mockTransactions = generateMockTransactions(data.type);
   await addExternalTransactions(session.user.id, account.id, mockTransactions);
+
+  revalidatePath("/dashboard");
+}
+
+export async function getBudgetData() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  const [budgets, categories] = await Promise.all([
+    getUserBudgets(session.user.id),
+    getCategories(),
+  ]);
+
+  const budgetsWithSpending = await Promise.all(
+    budgets.map(async (budget) => {
+      if (!session.user?.id) throw new Error("Not authenticated");
+      const spending = await getBudgetSpending(session.user.id, budget);
+      return {
+        ...budget,
+        ...spending,
+      };
+    })
+  );
+
+  return {
+    budgets: budgetsWithSpending,
+    categories,
+  };
+}
+
+export async function createBudget(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  const amount = Number.parseFloat(formData.get("amount") as string);
+  const categoryId = formData.get("categoryId") as string;
+  const period = formData.get("period") as "monthly" | "annual";
+  const startDate = new Date(formData.get("startDate") as string);
+  const endDate = new Date(formData.get("endDate") as string);
+
+  if (!amount || !categoryId || !period || !startDate || !endDate) {
+    throw new Error("Missing required fields");
+  }
+
+  await addBudget(session.user.id, {
+    amount,
+    categoryId,
+    period,
+    startDate,
+    endDate,
+  });
+
+  revalidatePath("/dashboard");
+}
+
+export async function deleteBudget(budgetId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  await deleteBudgetFromDb(session.user.id, budgetId);
+  revalidatePath("/dashboard");
+}
+
+export async function updateBudget(budgetId: string, formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  const amount = formData.get("amount")
+    ? Number.parseFloat(formData.get("amount") as string)
+    : undefined;
+  const categoryId = (formData.get("categoryId") as string) || undefined;
+  const period = (formData.get("period") as "monthly" | "annual") || undefined;
+  const startDate = formData.get("startDate")
+    ? new Date(formData.get("startDate") as string)
+    : undefined;
+  const endDate = formData.get("endDate")
+    ? new Date(formData.get("endDate") as string)
+    : undefined;
+
+  await updateBudgetInDb(session.user.id, budgetId, {
+    amount,
+    categoryId,
+    period,
+    startDate,
+    endDate,
+  });
 
   revalidatePath("/dashboard");
 }
