@@ -17,16 +17,17 @@ import {
   type NewDividend,
 } from "./schema";
 import * as schema from "./schema";
+import { createClient } from "@libsql/client";
 
-export const db = drizzle({
-  connection: {
+export const db = drizzle(
+  createClient({
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     url: process.env.TURSO_CONNECTION_URL!,
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     authToken: process.env.TURSO_AUTH_TOKEN!,
-  },
-  schema: schema,
-});
+  }),
+  { schema }
+);
 
 export async function getUserTransactions(userId: string) {
   return await db
