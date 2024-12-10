@@ -56,12 +56,6 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-
-  if (!session || !session.user) {
-    redirect("/auth");
-  }
-
   return (
     <div className="flex h-screen">
       {/* Sidebar */}

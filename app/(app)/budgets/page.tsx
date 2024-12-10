@@ -1,17 +1,9 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BudgetProgress } from "@/components/dashboard/budget-progress";
 import { AddBudgetDialog } from "@/components/dashboard/add-budget-dialog";
 import { getBudgetData } from "../dashboard/actions";
 
 export default async function BudgetsPage() {
-  const session = await auth();
-
-  if (!session || !session.user) {
-    redirect("/auth");
-  }
-
   const { budgets, categories } = await getBudgetData();
 
   return (

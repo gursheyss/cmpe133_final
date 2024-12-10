@@ -1,17 +1,9 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConnectAccountDialog } from "@/components/dashboard/connect-account-dialog";
 import { ManageAccountsDialog } from "@/components/dashboard/manage-accounts-dialog";
 import { getTransactionData } from "../dashboard/actions";
 
 export default async function AccountsPage() {
-  const session = await auth();
-
-  if (!session || !session.user) {
-    redirect("/auth");
-  }
-
   const { accounts } = await getTransactionData();
 
   const totalBalance = accounts.reduce(

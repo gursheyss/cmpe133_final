@@ -8,12 +8,6 @@ import type { Transaction } from "@/db/schema";
 import { getTransactionData } from "../dashboard/actions";
 
 export default async function TransactionsPage() {
-  const session = await auth();
-
-  if (!session || !session.user) {
-    redirect("/auth");
-  }
-
   const { transactions, categories } = await getTransactionData();
 
   const monthlyIncome = transactions

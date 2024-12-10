@@ -5,12 +5,6 @@ import { InvestmentList } from "@/components/dashboard/investment-list";
 import { getInvestmentData } from "../dashboard/actions";
 
 export default async function InvestmentsPage() {
-  const session = await auth()
-
-  if (!session || !session.user) {
-    redirect("/auth");
-  }
-
   const investmentData = await getInvestmentData();
 
   return (
