@@ -25,6 +25,9 @@ TURSO_AUTH_TOKEN=your_turso_auth_token
 
 # Auth configuration
 AUTH_SECRET=your_auth_secret # Generate with: openssl rand -base64 32
+
+# Next.js configuration
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 3. Run database migrations:
