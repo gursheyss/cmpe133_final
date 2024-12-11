@@ -46,7 +46,7 @@ const formSchema = z.object({
     ),
   description: z.string().min(1, "Description is required"),
   category: z.string().min(1, "Category is required"),
-  date: z.date(),
+  date: z.string().min(1, "Date is required"),
 });
 
 interface AddTransactionDialogProps {
