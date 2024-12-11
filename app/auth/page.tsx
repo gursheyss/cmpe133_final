@@ -12,6 +12,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActionState } from "react";
 import { signInAction, signUpAction } from "./actions";
+import { signIn } from "@/lib/auth";
 
 export default function AuthPage() {
   const [state, formAction] = useActionState(signUpAction, { error: null });
@@ -35,14 +36,7 @@ export default function AuthPage() {
 
           <CardContent>
             <TabsContent value="signin">
-              <form
-                action={async (formData) => {
-                  const result = await signInAction(formData);
-                  if (result?.error) {
-                    console.error(result.error);
-                  }
-                }}
-              >
+              <form action={signInAction}>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
