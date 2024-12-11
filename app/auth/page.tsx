@@ -11,15 +11,14 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const dynamic = "force-dynamic";
-
 async function signInAction(formData: FormData) {
   "use server";
   await signIn("credentials", formData);
 }
 
 async function signUpAction(formData: FormData) {
-  await fetch("/api/auth/register", {
+  "use server";
+  await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/register`, {
     method: "POST",
     body: JSON.stringify({
       email: formData.get("email"),
@@ -28,7 +27,8 @@ async function signUpAction(formData: FormData) {
     }),
     headers: { "Content-Type": "application/json" },
   });
-  await signInAction(formData);
+
+  await signIn("credentials", formData);
 }
 
 export default function AuthPage() {
