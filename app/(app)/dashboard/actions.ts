@@ -17,6 +17,7 @@ import {
   addInvestment,
   addDividend,
   updateInvestmentPrice,
+  disconnectExternalAccount,
 } from "@/db";
 import { revalidatePath } from "next/cache";
 import { extendedCategories } from "@/db/schema";
@@ -218,7 +219,111 @@ export async function connectExternalAccount(data: {
   const mockTransactions = generateMockTransactions(data.type);
   await addExternalTransactions(session.user.id, account.id, mockTransactions);
 
+  if (data.type === "investment") {
+    const mockInvestments = generateMockInvestments(data.provider);
+    for (const inv of mockInvestments) {
+      await addInvestment(session.user.id, inv);
+    }
+  }
+
   revalidatePath("/dashboard");
+  revalidatePath("/investments");
+}
+
+function generateMockInvestments(provider: string) {
+  const investments: Array<{
+    symbol: string;
+    name: string;
+    type: "stock" | "etf" | "crypto" | "bond" | "mutual_fund";
+    shares: number;
+    averageCost: number;
+    currentPrice: number;
+  }> = [];
+
+  const providerFunds = {
+    vanguard: [
+      { symbol: "VTI", name: "Vanguard Total Stock Market ETF", type: "etf" },
+      { symbol: "VFIAX", name: "Vanguard 500 Index Fund", type: "mutual_fund" },
+      { symbol: "BND", name: "Vanguard Total Bond Market ETF", type: "bond" },
+    ],
+    fidelity: [
+      { symbol: "FXAIX", name: "Fidelity 500 Index Fund", type: "mutual_fund" },
+      {
+        symbol: "FTEC",
+        name: "Fidelity MSCI Information Technology ETF",
+        type: "etf",
+      },
+      { symbol: "FBND", name: "Fidelity Total Bond ETF", type: "bond" },
+    ],
+    schwab: [
+      {
+        symbol: "SWPPX",
+        name: "Schwab S&P 500 Index Fund",
+        type: "mutual_fund",
+      },
+      { symbol: "SCHD", name: "Schwab US Dividend Equity ETF", type: "etf" },
+      { symbol: "SCHZ", name: "Schwab US Aggregate Bond ETF", type: "bond" },
+    ],
+  };
+
+  const funds =
+    providerFunds[provider as keyof typeof providerFunds] ||
+    providerFunds.vanguard;
+  for (const fund of funds) {
+    const basePrice = Math.random() * 200 + 50;
+    investments.push({
+      symbol: fund.symbol,
+      name: fund.name,
+      type: fund.type as "etf" | "mutual_fund" | "bond",
+      shares: Math.round((Math.random() * 100 + 10) * 100) / 100,
+      averageCost: basePrice * (1 - Math.random() * 0.1),
+      currentPrice: basePrice,
+    });
+  }
+
+  const commonStocks = [
+    { symbol: "AAPL", name: "Apple Inc." },
+    { symbol: "MSFT", name: "Microsoft Corporation" },
+    { symbol: "GOOGL", name: "Alphabet Inc." },
+  ];
+
+  for (const stock of commonStocks) {
+    if (Math.random() > 0.3) {
+      const basePrice = Math.random() * 200 + 100;
+      investments.push({
+        symbol: stock.symbol,
+        name: stock.name,
+        type: "stock",
+        shares: Math.round((Math.random() * 50 + 5) * 100) / 100,
+        averageCost: basePrice * (1 - Math.random() * 0.1),
+        currentPrice: basePrice,
+      });
+    }
+  }
+
+  if (provider === "robinhood" || provider === "coinbase") {
+    const cryptos = [
+      { symbol: "BTC", name: "Bitcoin" },
+      { symbol: "ETH", name: "Ethereum" },
+    ];
+
+    for (const crypto of cryptos) {
+      const basePrice =
+        crypto.symbol === "BTC"
+          ? 30000 + Math.random() * 5000
+          : 1800 + Math.random() * 200;
+      investments.push({
+        symbol: crypto.symbol,
+        name: crypto.name,
+        type: "crypto",
+        shares: Math.round((Math.random() * 2 + 0.1) * 10000) / 10000,
+        averageCost: basePrice * (1 - Math.random() * 0.1),
+        currentPrice: basePrice,
+      });
+    }
+  }
+
+  return investments;
 }
 
 export async function getBudgetData() {
@@ -402,4 +507,15 @@ export async function updateInvestmentPricing(formData: FormData) {
 
   await updateInvestmentPrice(session.user.id, investmentId, currentPrice);
   revalidatePath("/dashboard");
+}
+
+export async function disconnectAccount(accountId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+
+  await disconnectExternalAccount(session.user.id, accountId);
+  revalidatePath("/dashboard");
+  revalidatePath("/investments");
 }
