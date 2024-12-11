@@ -17,7 +17,6 @@ async function signInAction(formData: FormData) {
 }
 
 async function signUpAction(formData: FormData) {
-  "use server";
   await fetch("/api/auth/register", {
     method: "POST",
     body: JSON.stringify({
@@ -27,8 +26,7 @@ async function signUpAction(formData: FormData) {
     }),
     headers: { "Content-Type": "application/json" },
   });
-
-  await signIn("credentials", formData);
+  await signInAction(formData);
 }
 
 export default function AuthPage() {
