@@ -5,6 +5,10 @@ export const config = {
 };
 
 export default auth((req) => {
+  if (req.nextUrl.pathname.startsWith("/api/auth")) {
+    return;
+  }
+
   if (!req.auth && req.nextUrl.pathname !== "/auth") {
     const newUrl = new URL("/auth", req.nextUrl.origin);
     return Response.redirect(newUrl);
