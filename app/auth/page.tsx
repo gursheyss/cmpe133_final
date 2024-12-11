@@ -1,4 +1,4 @@
-import { signIn } from "@/lib/auth";
+"use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,28 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-async function signInAction(formData: FormData) {
-  "use server";
-  await signIn("credentials", formData);
-}
-
-async function signUpAction(formData: FormData) {
-  "use server";
-  await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/register`, {
-    method: "POST",
-    body: JSON.stringify({
-      email: formData.get("email"),
-      password: formData.get("password"),
-      name: formData.get("name"),
-    }),
-    headers: { "Content-Type": "application/json" },
-  });
-
-  await signIn("credentials", formData);
-}
+import { useActionState } from "react";
+import { signInAction, signUpAction } from "./actions";
 
 export default function AuthPage() {
+  const [state, formAction] = useActionState(signUpAction, { error: null });
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -74,8 +58,13 @@ export default function AuthPage() {
             </TabsContent>
 
             <TabsContent value="signup">
-              <form action={signUpAction}>
+              <form action={formAction}>
                 <div className="space-y-4">
+                  {state?.error && (
+                    <p className="text-sm text-red-500 font-medium">
+                      {state.error}
+                    </p>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
                     <Input id="name" name="name" required />

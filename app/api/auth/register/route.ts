@@ -15,12 +15,16 @@ export async function POST(request: Request) {
     });
 
     if (existingUser) {
-      return new NextResponse("User already exists", { status: 400 });
+      return new NextResponse(
+        JSON.stringify({ error: "Email already registered" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     const hashedPassword = await hashPassword(password);
-
-    console.log(hashedPassword);
 
     await db.insert(users).values({
       id: crypto.randomUUID(),
@@ -29,12 +33,23 @@ export async function POST(request: Request) {
       password: hashedPassword,
     });
 
-    return new NextResponse("User created successfully", { status: 201 });
+    return new NextResponse(
+      JSON.stringify({ message: "User created successfully" }),
+      {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Registration error:", error);
     return new NextResponse(
-      error instanceof Error ? error.message : "Something went wrong",
-      { status: 500 }
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Something went wrong",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }
