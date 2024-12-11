@@ -43,7 +43,13 @@ import { cn } from "@/lib/utils";
 import type { Category } from "@/db/schema";
 
 const formSchema = z.object({
-  amount: z.string().min(1, "Amount is required"),
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine(
+      (val) => !Number.isNaN(Number(val)) && Number(val) > 0,
+      "Amount must be greater than 0"
+    ),
   categoryId: z.string().min(1, "Category is required"),
   period: z.enum(["monthly", "annual"]),
   startDate: z.date(),

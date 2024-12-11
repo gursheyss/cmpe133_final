@@ -37,9 +37,27 @@ const formSchema = z.object({
   symbol: z.string().min(1, "Symbol is required"),
   name: z.string().min(1, "Name is required"),
   type: z.enum(["stock", "etf", "crypto", "bond", "mutual_fund"]),
-  shares: z.string().min(1, "Number of shares is required"),
-  averageCost: z.string().min(1, "Average cost is required"),
-  currentPrice: z.string().min(1, "Current price is required"),
+  shares: z
+    .string()
+    .min(1, "Number of shares is required")
+    .refine(
+      (val) => !Number.isNaN(Number(val)) && Number(val) > 0,
+      "Number of shares must be greater than 0"
+    ),
+  averageCost: z
+    .string()
+    .min(1, "Average cost is required")
+    .refine(
+      (val) => !Number.isNaN(Number(val)) && Number(val) > 0,
+      "Average cost must be greater than 0"
+    ),
+  currentPrice: z
+    .string()
+    .min(1, "Current price is required")
+    .refine(
+      (val) => !Number.isNaN(Number(val)) && Number(val) > 0,
+      "Current price must be greater than 0"
+    ),
 });
 
 export function AddInvestmentDialog() {
