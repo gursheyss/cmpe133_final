@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+export const dynamic = "force-dynamic";
+
 async function signInAction(formData: FormData) {
   "use server";
   await signIn("credentials", formData);
