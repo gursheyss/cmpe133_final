@@ -8,7 +8,12 @@ import { accounts, verificationTokens } from "@/db/schema";
 import { sessions } from "@/db/schema";
 import { users } from "@/db/schema";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const {
+  handlers: authHandlers,
+  auth,
+  signIn,
+  signOut,
+} = NextAuth({
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
@@ -81,3 +86,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+export const { GET, POST } = authHandlers;
