@@ -4,9 +4,17 @@ import Credentials from "next-auth/providers/credentials";
 import { getUserByEmail, verifyPassword } from "./auth-utils";
 import { db } from "@/db";
 import { signInSchema } from "./zod";
+import { accounts, verificationTokens } from "@/db/schema";
+import { sessions } from "@/db/schema";
+import { users } from "@/db/schema";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   session: {
     strategy: "jwt",
   },
