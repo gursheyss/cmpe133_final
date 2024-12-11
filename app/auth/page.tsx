@@ -1,7 +1,4 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { signIn } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,60 +10,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { signIn } from "@/lib/auth";
 
-export default function AuthPage() {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+async function signInAction(formData: FormData) {
+  "use server";
+  await signIn("credentials", formData);
+}
 
-  async function onSubmit(
-    event: React.FormEvent<HTMLFormElement>,
-    mode: "signin" | "signup"
-  ) {
-    event.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    const formData = new FormData(event.currentTarget);
-    const credentials = {
+async function signUpAction(formData: FormData) {
+  "use server";
+  await fetch("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({
       email: formData.get("email"),
       password: formData.get("password"),
       name: formData.get("name"),
-    };
+    }),
+    headers: { "Content-Type": "application/json" },
+  });
 
-    try {
-      if (mode === "signup") {
-        const res = await fetch("/api/auth/register", {
-          method: "POST",
-          body: JSON.stringify(credentials),
-          headers: { "Content-Type": "application/json" },
-        });
+  await signIn("credentials", formData);
+}
 
-        if (!res.ok) {
-          throw new Error(await res.text());
-        }
-      }
-      const result = await signIn("credentials", {
-        email: credentials.email,
-        password: credentials.password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Invalid credentials");
-        return;
-      }
-
-      router.push("/dashboard");
-      router.refresh();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Something went wrong");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
+export default function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -85,14 +50,8 @@ export default function AuthPage() {
           </CardHeader>
 
           <CardContent>
-            {error && (
-              <div className="mb-4 text-sm text-red-500 text-center">
-                {error}
-              </div>
-            )}
-
             <TabsContent value="signin">
-              <form onSubmit={(e) => onSubmit(e, "signin")}>
+              <form action={signInAction}>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -107,15 +66,15 @@ export default function AuthPage() {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Loading..." : "Sign In"}
+                  <Button type="submit" className="w-full">
+                    Sign In
                   </Button>
                 </div>
               </form>
             </TabsContent>
 
             <TabsContent value="signup">
-              <form onSubmit={(e) => onSubmit(e, "signup")}>
+              <form action={signUpAction}>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
@@ -134,8 +93,8 @@ export default function AuthPage() {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Loading..." : "Sign Up"}
+                  <Button type="submit" className="w-full">
+                    Sign Up
                   </Button>
                 </div>
               </form>
