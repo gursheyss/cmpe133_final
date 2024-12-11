@@ -35,7 +35,14 @@ export default function AuthPage() {
 
           <CardContent>
             <TabsContent value="signin">
-              <form action={signInAction}>
+              <form
+                action={async (formData) => {
+                  const result = await signInAction(formData);
+                  if (result?.error) {
+                    console.error(result.error);
+                  }
+                }}
+              >
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>

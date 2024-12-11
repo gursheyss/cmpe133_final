@@ -3,7 +3,19 @@
 import { signIn } from "@/lib/auth";
 
 export async function signInAction(formData: FormData) {
-  await signIn("credentials", formData);
+  try {
+    await signIn("credentials", {
+      email: formData.get("email"),
+      password: formData.get("password"),
+      redirect: true,
+      redirectTo: "/dashboard",
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: "Something went wrong" };
+  }
 }
 
 export async function signUpAction(
